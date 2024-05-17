@@ -1,16 +1,15 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
+import { Archivo } from "next/font/google";
 import SessionWrapper from "@/components/auth/sessionWrapper";
 
 //Styles
 import 'bootstrap/dist/css/bootstrap.min.css';
-//import "bootstrap/dist/js/bootstrap.min.js";
+import "./globals.css";
 
 import Header from "@/components/blocks/header";
 
 
-const inter = Inter({ subsets: ["latin"] });
+const archivo = Archivo({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: process.env.NEXT_PUBLIC_SITE_NAME ?? "Next.js App",
@@ -25,10 +24,10 @@ export default function RootLayout({
   return (
     <SessionWrapper>
     <html lang="en">
-      <body>
+      <body className={archivo.className}>
       <Header />
-      <div id="content" className="container">
-        <main className={inter.className}>{children} </main>
+      <div id="content">
+        <main>{children} </main>
       </div>
       </body>
     </html>

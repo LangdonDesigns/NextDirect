@@ -1,7 +1,6 @@
+"use client";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
-import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
 
 interface Data {
   first_name?: string;

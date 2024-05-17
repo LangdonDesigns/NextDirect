@@ -21,7 +21,7 @@ export default function LoginForm() {
       redirect: false,
     });
     if (!response?.error) {
-      router.push('/');
+      router.push('/login');
       router.refresh();
     } else {
       response.status === 401

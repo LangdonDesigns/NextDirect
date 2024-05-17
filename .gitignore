@@ -40,3 +40,7 @@ next-env.d.ts
 /app/api/webhooks
 /app/pages
 /pages
+
+#Ignore Dev Tag Files
+dev-*
+/dev-*
