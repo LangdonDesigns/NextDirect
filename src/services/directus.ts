@@ -49,6 +49,7 @@ import {
 
   export const getResult = async () => {
     const result = await StaticDirectus.request<Output>({
+      
     });
     return result;
   };
