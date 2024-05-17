@@ -1,5 +1,5 @@
-import { NextAuthOptions, Awaitable, User, Session } from "next-auth"
-import CredentialsProvider from "next-auth/providers/credentials";
+import NextAuth, { User, NextAuthConfig } from "next-auth";
+import Credentials from "next-auth/providers/credentials";
 //import GithubProvider from "next-auth/providers/github";
 //import GoogleProvider from "next-auth/providers/google";
 import { JWT } from "next-auth/jwt";
@@ -7,6 +7,8 @@ import { handleError } from "@/lib/error/error";
 import { readMe, refresh } from "@directus/sdk"
 import { directus, login } from "@/services/directus";
 import { AuthRefresh, UserSession, UserParams } from "@/types/next-auth";
+
+export const BASE_PATH = "/api/auth";
 
 const userParams = (user: UserSession): UserParams => {
   return {
@@ -18,9 +20,9 @@ const userParams = (user: UserSession): UserParams => {
   }
 }
 
-export const authOptions: NextAuthOptions = {
+const authOptions: NextAuthConfig = {
   providers: [
-    CredentialsProvider({
+    Credentials({
       name: "credentials",
       credentials: {
         email: {
@@ -65,7 +67,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   session: {
-    strategy: "jwt"
+    strategy: "jwt",
   },
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
@@ -76,6 +78,7 @@ export const authOptions: NextAuthOptions = {
         token.expires_at = session.expires_at
         token.tokenIsRefreshed = false
       }
+
       if (account) {
         return {
           access_token: user.access_token,
@@ -128,3 +131,5 @@ export const authOptions: NextAuthOptions = {
     error: "/login",
   },
 }
+
+export const { handlers, auth, signIn, signOut } = NextAuth(authOptions);

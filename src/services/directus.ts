@@ -44,6 +44,12 @@ import {
   }
 
   export const StaticDirectus = createDirectus(process.env.NEXT_PUBLIC_DIRECTUS_API ?? "")
-    .with(authentication("cookie", {credentials: "include", autoRefresh: true}))
+    .with(authentication("session", {credentials: "include", autoRefresh: true}))
     .with(rest());
+
+  export const getResult = async () => {
+    const result = await StaticDirectus.request<Output>({
+    });
+    return result;
+  };
   

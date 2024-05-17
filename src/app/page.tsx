@@ -2,10 +2,7 @@
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import env from "@/lib/env/globals";
-
-
-//Components
-import ButtonUser from "@/components/auth/buttonUser";
+import LoginForm from "@/app/login/form";
 
 export default function Home() {
   
@@ -30,7 +27,16 @@ export default function Home() {
         <p>{siteDescription}</p>
     </div>
 
-    {session ? (<p>Logged in as {session.user.email}</p>) : (<div className="col-12 d-flex flex-column"><h2>Not signed in</h2><ButtonUser /></div>)}
+    {session ? (
+      <div className="col-12 d-flex flex-column justify-text-center">
+        <h3>Welcome Back {session.user.name}!</h3>
+        <p>Logged in as {session.user.email}</p>
+      </div>
+      ) : (
+      <div className="col-12 d-flex flex-column">
+        <LoginForm />
+      </div>
+    )}
     
   </div>
 </div>

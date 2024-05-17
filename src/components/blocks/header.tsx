@@ -4,9 +4,12 @@ import Image from "next/image"
 import Link from "next/link"
 import { Navbar, Nav, Container, Form, Button } from "react-bootstrap"
 import { usePathname } from "next/navigation"
+import { useSession } from "next-auth/react";
+import ButtonUser from "@/components/auth/buttonUser";
 
 export default function Header() {
     const pathname = usePathname();
+
     return (
         <Navbar bg="primary" variant="dark" sticky="top" expand="sm" collapseOnSelect>
           <Container fluid>
@@ -30,6 +33,9 @@ export default function Header() {
                   />
                   <Button variant="secondary">Search</Button>
               </Form>
+              <div className="d-flex m-2">
+                <ButtonUser />
+              </div>
           </Navbar.Collapse>
         </Container>
       </Navbar>

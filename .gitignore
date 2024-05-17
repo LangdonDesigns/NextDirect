@@ -44,3 +44,5 @@ next-env.d.ts
 #Ignore Dev Tag Files
 dev-*
 /dev-*
+temp-*
+/temp-*
