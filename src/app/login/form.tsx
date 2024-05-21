@@ -1,20 +1,16 @@
+// @/app/login/form.tsx
 'use client';
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
 
-
-import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-
-import { useState } from 'react';
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useLogin } from '@/components/auth/login.client';
 import { useForm } from 'react-hook-form';
-
+import { useSession } from 'next-auth/react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Alert from 'react-bootstrap/Alert';
 import Spinner from 'react-bootstrap/Spinner';
 import Link from 'next/link';
-
 
 const formSchema = z.object({
   email: z.string().email({
@@ -23,37 +19,19 @@ const formSchema = z.object({
   password: z.string().nonempty({ message: "Password is required" }),
 });
 
-export default function LoginForm() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const router = useRouter();
-
+export function LoginForm() {
+  const { handleSubmitForm, handleSubmitWithCookies, loadingButton, error } = useLogin();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
       password: "",
     },
-  })
+  });
 
-  const onSubmit = async (
-    values: z.infer<typeof formSchema>
-  ): Promise<void> => {
-    setIsLoading(true)
-    const res = await signIn("credentials", {
-      email: values.email,
-      password: values.password,
-      callbackUrl: `/`,
-      redirect: false,
-    })
-    if (res?.error) {
-      setError(res?.error)
-      setIsLoading(false)
-    } else {
-      router.push("/")
-    }
-  }
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    await handleSubmitForm(values);
+  };
 
   return (
     <div className="d-flex justify-content-center align-items-center">
@@ -66,24 +44,30 @@ export default function LoginForm() {
             <Form onSubmit={form.handleSubmit(onSubmit)}>
               <Form.Group className="mb-3" controlId="loginForm.email">
                 <Form.Label>Email Address</Form.Label>
-                <Form.Control type="email" placeholder="name@example.com" {...form.register("email")} />
+                <Form.Control type="email" placeholder="name@example.com" autoComplete="email" {...form.register("email")} />
                 {form.formState.errors.email && (
                   <Alert variant="warning" style={{ padding: 2, margin: 0 }}>
-                  <p style={{ padding: 0, margin: 0 }}>{form.formState.errors.email.message}</p>
+                    <p style={{ padding: 0, margin: 0 }}>{form.formState.errors.email.message}</p>
                   </Alert>
                 )}
               </Form.Group>
               <Form.Group className="mb-3" controlId="loginForm.password">
                 <Form.Label>Password</Form.Label>
-                <Form.Control type="password" placeholder="password" {...form.register("password")} />
+                <Form.Control type="password" placeholder="password" autoComplete="password" {...form.register("password")} />
                 {form.formState.errors.password && (
                   <Alert variant="warning" style={{ padding: 2, margin: 0 }}>
-                  <p style={{ padding: 0, margin: 0 }}>{form.formState.errors.password.message}</p>
+                    <p style={{ padding: 0, margin: 0 }}>{form.formState.errors.password.message}</p>
                   </Alert>
                 )}
               </Form.Group>
-              <Button variant="primary" disabled={isLoading} type="submit" className="float-end">{isLoading ? <Spinner animation="border" size="sm" /> : "Login"}</Button>
+              <Button variant="primary" disabled={loadingButton === 'submit'} type="submit" className="float-end">{loadingButton === 'submit' ? <Spinner animation="border" size="sm" /> : "Login"}</Button>
             </Form>
+          </div>
+          <div className="col-12">
+            <Button id="Cookie-Login" variant="primary" disabled={loadingButton === 'cookie'} type="button" onClick={handleSubmitWithCookies} className="float-end mt-2">{loadingButton === 'cookie' ? <Spinner animation="border" size="sm" /> : "Login with Cookie"}</Button>
+          </div>
+          <div className="col-12">
+            <Button id="Google-Login" variant="primary" disabled={loadingButton === 'googlesso'} type="link" className="float-end mt-2" href="https://stack.sd308.net/auth/login/google?redirect=https://communications.sd308.net/api/tokens/directusAuthGoogle">Login with Google</Button>
           </div>
           <div className="col-12 text-center">
             {error && (
@@ -96,6 +80,20 @@ export default function LoginForm() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+export default function LoginFormOuter() {
+  const { data: session } = useSession();
+  return session ? (
+    <div className="col-12 d-flex flex-column justify-text-center">
+      <h3>Welcome Back {session?.user?.name}!</h3>
+      <p>Logged in as {session?.user?.email}</p>
+    </div>
+  ) : (
+    <div className="col-12 d-flex flex-column">
+      <LoginForm />
     </div>
   );
 }

@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 7052",
+    "dev": "next dev -p 7051",
     "build": "next build",
-    "start": "next start -p 7052",
+    "start": "next start -p 7051",
     "lint": "next lint"
   },
   "dependencies": {
@@ -13,6 +13,7 @@
     "@hookform/resolvers": "^3.4.0",
     "bootstrap": "^5.3.3",
     "dotenv": "^16.4.5",
+    "js-cookie": "^3.0.5",
     "next": "14.2.3",
     "next-auth": "^5.0.0-beta.18",
     "react": "^18",

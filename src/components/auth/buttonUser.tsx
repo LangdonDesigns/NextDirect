@@ -5,7 +5,7 @@ import { useSession, signOut } from 'next-auth/react';
 
 //read session status and display button accordingly, sign in or sign out
 export default function ButtonUser({ user }: { user: UserAuthenticated }) {
-    const { data: session } = useSession();
+    const { data: session} = useSession();
     return (
     <>
         {session ? (

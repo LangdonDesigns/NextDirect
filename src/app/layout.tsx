@@ -2,12 +2,11 @@ import type { Metadata } from "next";
 import { Archivo } from "next/font/google";
 import SessionWrapper from "@/components/auth/sessionWrapper";
 
-//Styles
+// Styles
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "./globals.css";
 
 import Header from "@/components/blocks/header";
-
 
 const archivo = Archivo({ subsets: ["latin"] });
 
@@ -23,14 +22,14 @@ export default function RootLayout({
 }>) {
   return (
     <SessionWrapper>
-    <html lang="en">
-      <body className={archivo.className}>
-      <Header />
-      <div id="content">
-        <main>{children} </main>
-      </div>
-      </body>
-    </html>
+      <html lang="en">
+        <body className={archivo.className}>
+          <Header />
+          <div id="content">
+            <main>{children}</main>
+          </div>
+        </body>
+      </html>
     </SessionWrapper>
   );
 }
