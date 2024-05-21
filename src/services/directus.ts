@@ -54,3 +54,4 @@ import {
     return result;
   };
   
+  export default { directus };

@@ -1,12 +1,15 @@
 // @/auth/index.ts
 import NextAuth, { User, NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import DirectusProvider from "@/auth/providers/directus";
 import { JWT } from "next-auth/jwt";
 import { handleError } from "@/lib/error/error";
 import { readMe, refresh } from "@directus/sdk";
 import { directus, login } from "@/services/directus";
 import { AuthRefresh, UserSession, UserParams } from "@/types/next-auth";
-import { getCookieData } from "@/components/auth/login.server";
+import { getCookieData, createCookie } from "@/components/auth/login.server";
+import { cookies } from "next/headers";
+
 
 export const BASE_PATH = "/api/auth";
 
@@ -22,6 +25,15 @@ const userParams = (user: UserSession): UserParams => {
 
 const authOptions: NextAuthConfig = {
   providers: [
+    DirectusProvider({
+      clientId: process.env.DIRECTUS_CLIENT_ID,
+      clientSecret: process.env.DIRECTUS_CLIENT_SECRET,
+      authorization: {
+        params: {
+          scope: "openid profile email",
+        },
+      },
+    }),
     Credentials({
       name: "credentials",
       credentials: {
@@ -42,10 +54,62 @@ const authOptions: NextAuthConfig = {
         },
       },
       authorize: async (credentials) => {
-        const cookieDataCheck = await getCookieData();
-        /*if ( cookieDataCheck !== null ) {
-          console.log('cookies are here:', cookieDataCheck);
-        }*/
+        if ("email" in credentials && "password" in credentials) {
+          try {
+            const { email, password } = credentials as { email: string; password: string; };
+            const auth = await login({ email, password });
+            const apiAuth = directus(auth.access_token ?? "");
+            const loggedInUser = await apiAuth.request(
+              readMe({
+                fields: ["id", "email", "first_name", "last_name"],
+              })
+            );
+            const user: Awaitable<User> = {
+              id: loggedInUser.id,
+              first_name: loggedInUser.first_name ?? "",
+              last_name: loggedInUser.last_name ?? "",
+              email: loggedInUser.email ?? "",
+              access_token: auth.access_token ?? "",
+              expires: Math.floor(Date.now() + (auth.expires ?? 0)),
+              refresh_token: auth.refresh_token ?? "",
+            };
+            return user;
+          } catch (error: any) {
+            console.error('Error in email/password authorization:', error);
+            handleError(error);
+            return null;
+          }
+        }
+        await getCookieData();
+        const cookieStore = cookies();
+        const cookieDirect = cookieStore.get('StackSession');
+        const cookieDirectValue = cookieDirect.value;
+        if ( cookieDirectValue !== null ) {
+          console.log('Cookies Found!');
+          try {
+            const apiAuth = directus(cookieDirectValue);
+            const loggedInUser = await apiAuth.request(
+              readMe({
+                fields: ["id", "email", "first_name", "last_name"],
+              })
+            );
+            const user: Awaitable<User> = {
+              id: loggedInUser.id,
+              first_name: loggedInUser.first_name ?? "",
+              last_name: loggedInUser.last_name ?? "",
+              email: loggedInUser.email ?? "",
+              access_token: cookieDirectValue,
+              expires: Math.floor(Date.now() + 3600 * 1000), // 1 hour expiry
+              refresh_token: "",
+            };
+            return user;
+          } catch (error: any) {
+            //console.error('Error in cookieData authorization:', error);
+            handleError(error);
+            return null;
+          }
+
+        }
         if ("cookieData" in credentials) {
           try {
             const { cookieData } = credentials as { cookieData: string };
@@ -72,30 +136,7 @@ const authOptions: NextAuthConfig = {
             return null;
           }
         } else {
-          try {
-            const { email, password } = credentials as { email: string; password: string; };
-            const auth = await login({ email, password });
-            const apiAuth = directus(auth.access_token ?? "");
-            const loggedInUser = await apiAuth.request(
-              readMe({
-                fields: ["id", "email", "first_name", "last_name"],
-              })
-            );
-            const user: Awaitable<User> = {
-              id: loggedInUser.id,
-              first_name: loggedInUser.first_name ?? "",
-              last_name: loggedInUser.last_name ?? "",
-              email: loggedInUser.email ?? "",
-              access_token: auth.access_token ?? "",
-              expires: Math.floor(Date.now() + (auth.expires ?? 0)),
-              refresh_token: auth.refresh_token ?? "",
-            };
-            return user;
-          } catch (error: any) {
-            console.error('Error in email/password authorization:', error);
-            handleError(error);
-            return null;
-          }
+          return null;
         }
       },
     }),

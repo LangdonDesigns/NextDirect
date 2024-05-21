@@ -11,6 +11,10 @@ import Form from 'react-bootstrap/Form';
 import Alert from 'react-bootstrap/Alert';
 import Spinner from 'react-bootstrap/Spinner';
 import Link from 'next/link';
+import DirectusLoginLinks from '@/components/auth/loginDirectusLinks.client';
+import { useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
+
 
 const formSchema = z.object({
   email: z.string().email({
@@ -32,6 +36,14 @@ export function LoginForm() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     await handleSubmitForm(values);
   };
+
+  const searchParams = useSearchParams() as URLSearchParams;
+  useEffect(() => {
+    if (searchParams.get('directus') === 'true') {
+      
+      handleSubmitWithCookies();
+    }
+  }, [searchParams.get('directus')]); 
 
   return (
     <div className="d-flex justify-content-center align-items-center">
@@ -63,12 +75,10 @@ export function LoginForm() {
               <Button variant="primary" disabled={loadingButton === 'submit'} type="submit" className="float-end">{loadingButton === 'submit' ? <Spinner animation="border" size="sm" /> : "Login"}</Button>
             </Form>
           </div>
-          <div className="col-12">
+          <div className="col-12 d-none">
             <Button id="Cookie-Login" variant="primary" disabled={loadingButton === 'cookie'} type="button" onClick={handleSubmitWithCookies} className="float-end mt-2">{loadingButton === 'cookie' ? <Spinner animation="border" size="sm" /> : "Login with Cookie"}</Button>
           </div>
-          <div className="col-12">
-            <Button id="Google-Login" variant="primary" disabled={loadingButton === 'googlesso'} type="link" className="float-end mt-2" href="https://stack.sd308.net/auth/login/google?redirect=https://communications.sd308.net/api/tokens/directusAuthGoogle">Login with Google</Button>
-          </div>
+          <DirectusLoginLinks />
           <div className="col-12 text-center">
             {error && (
               <Alert variant="danger">
@@ -83,6 +93,7 @@ export function LoginForm() {
     </div>
   );
 }
+
 
 export default function LoginFormOuter() {
   const { data: session } = useSession();
