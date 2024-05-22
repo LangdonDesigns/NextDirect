@@ -7,6 +7,7 @@ declare module "next-auth" {
     email: string
     first_name: string
     last_name: string
+    role: string
     access_token: string
     expires: number
     refresh_token: string
@@ -45,6 +46,7 @@ export type UserSession = {
   first_name: string;
   last_name: string;
   email: string;
+  role: string;
   access_token?: string;
   expires?: number;
   refresh_token?: string;
@@ -56,10 +58,12 @@ export type UserParams = {
   first_name?: string;
   last_name?: string;
   email?: string;
+  role?: string;
 }
 
 export type UserAuthenticated = {
   id?: string;
   name?: string;
   email?: string;
+  role?: string;
 }

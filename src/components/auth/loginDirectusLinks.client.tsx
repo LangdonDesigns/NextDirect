@@ -1,23 +1,62 @@
-// @/components/auth/loginDirectusLinks.client.tsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
-import { useState } from 'react';
+import LoadingSpinner from '@/components/blocks/spinners/loading';
+import getDirectusProviders from '@/components/auth/loginDirectusLinks.server';
 
 const DirectusLoginLinks = () => {
   const [loadingButton, setLoadingButton] = useState<string | null>(null);
-  const directusGoogleLoginUrl = `${process.env.NEXT_PUBLIC_DIRECTUS_API}/auth/login/google?redirect=${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/api/tokens/directusauth`;
+  const [providerNames, setProviderNames] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProviders = async () => {
+      try {
+        const directusProviders = await getDirectusProviders();
+        const names = directusProviders.map((provider: any) => provider.name);
+        setProviderNames(names);
+      } catch (error) {
+        console.error('Error fetching Directus providers:', error);
+        setProviderNames([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProviders();
+  }, []);
+
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+  
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     setLoadingButton(e.currentTarget.id);
   };
-  
+
+  const generateLoginButton = (providerName: string) => {
+    const loginUrl = `${process.env.NEXT_PUBLIC_DIRECTUS_API}/auth/login/${providerName}?redirect=${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/api/tokens/directusauth&return=${currentUrl}`;
+    return (
+      <div className="col-12" key={providerName}>
+        <Button
+          id={`${providerName}-login`}
+          variant="primary"
+          className="float-end mt-2"
+          type="link"
+          href={loginUrl}
+          onClick={handleClick}
+        >
+          {loadingButton === `${providerName}-login` ? <Spinner animation="border" size="sm" /> : `Login with ${providerName.charAt(0).toUpperCase() + providerName.slice(1)}`}
+        </Button>
+      </div>
+    );
+  };
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
   return (
-    <div className="col-12">
-      <Button id="Google-Login" variant="primary" className="float-end mt-2" type="link" href={directusGoogleLoginUrl} onClick={handleClick}>
-        {loadingButton === 'Google-Login' ? <Spinner animation="border" size="sm" /> : "Login with Google"}
-      </Button>
-    </div>
+    <>
+      {providerNames.map(generateLoginButton)}
+    </>
   );
 };
 

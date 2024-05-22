@@ -7,27 +7,50 @@ import { handleError } from "@/lib/error/error";
 import { readMe, refresh } from "@directus/sdk";
 import { directus, login } from "@/services/directus";
 import { AuthRefresh, UserSession, UserParams } from "@/types/next-auth";
-import { getCookieData, createCookie } from "@/components/auth/login.server";
+import { getCookieData } from "@/components/auth/login.server";
 import { cookies } from "next/headers";
-
 
 export const BASE_PATH = "/api/auth";
 
-const userParams = (user: UserSession): UserParams => {
-  return {
-    id: user.id,
-    email: user.email,
-    first_name: user.first_name,
-    last_name: user.last_name,
-    name: `${user.first_name} ${user.last_name}`,
-  };
-};
+async function getUserData(token: string): Promise<Awaitable<User> | null> {
+  try {
+      const expireFloor = Math.floor(Date.now() + 12 * 3600 * 1000);
+      const apiAuth = directus(token);
+      const loggedInUser = await apiAuth.request(
+        readMe({ fields: ["id", "email", "first_name", "last_name", "role.name"] })
+      );
+      const user: Awaitable<User> = {
+        id: loggedInUser.id,
+        first_name: loggedInUser.first_name ?? "",
+        last_name: loggedInUser.last_name ?? "",
+        email: loggedInUser.email ?? "",
+        role: loggedInUser.role.name ?? "",
+        access_token: token,
+        expires: expireFloor,
+        refresh_token: "",
+      };
+      return user;
+  } catch (error: any) {
+    return null;
+  }
+}
+
+const userParams = ({ id, email, first_name, last_name, role }: UserSession): UserParams => ({
+  id,
+  email,
+  first_name,
+  last_name,
+  name: `${first_name} ${last_name}`,
+  role,
+});
+
+const { DIRECTUS_CLIENT_ID, DIRECTUS_CLIENT_SECRET } = process.env;
 
 const authOptions: NextAuthConfig = {
   providers: [
     DirectusProvider({
-      clientId: process.env.DIRECTUS_CLIENT_ID,
-      clientSecret: process.env.DIRECTUS_CLIENT_SECRET,
+      clientId: DIRECTUS_CLIENT_ID,
+      clientSecret: DIRECTUS_CLIENT_SECRET,
       authorization: {
         params: {
           scope: "openid profile email",
@@ -58,83 +81,28 @@ const authOptions: NextAuthConfig = {
           try {
             const { email, password } = credentials as { email: string; password: string; };
             const auth = await login({ email, password });
-            const apiAuth = directus(auth.access_token ?? "");
-            const loggedInUser = await apiAuth.request(
-              readMe({
-                fields: ["id", "email", "first_name", "last_name"],
-              })
-            );
-            const user: Awaitable<User> = {
-              id: loggedInUser.id,
-              first_name: loggedInUser.first_name ?? "",
-              last_name: loggedInUser.last_name ?? "",
-              email: loggedInUser.email ?? "",
-              access_token: auth.access_token ?? "",
-              expires: Math.floor(Date.now() + (auth.expires ?? 0)),
-              refresh_token: auth.refresh_token ?? "",
-            };
-            return user;
+            const user = await getUserData(auth.access_token ?? "");
+            if (user) {
+              user.expires = Math.floor(Date.now() + (auth.expires ?? 0));
+              user.refresh_token = auth.refresh_token ?? "";
+              return user;
+            } else {
+              throw new Error("Email address or password is invalid");
+            }
           } catch (error: any) {
-            console.error('Error in email/password authorization:', error);
-            handleError(error);
             return null;
           }
         }
         await getCookieData();
         const cookieStore = cookies();
-        const cookieDirect = cookieStore.get('StackSession');
+        const cookieDirect = cookieStore.get(process.env.DIRECTUS_SESSION_TOKEN_NAME, { domain: process.env.DIRECTUS_SESSION_TOKEN_DOMAIN });
         const cookieDirectValue = cookieDirect.value;
-        if ( cookieDirectValue !== null ) {
-          console.log('Cookies Found!');
-          try {
-            const apiAuth = directus(cookieDirectValue);
-            const loggedInUser = await apiAuth.request(
-              readMe({
-                fields: ["id", "email", "first_name", "last_name"],
-              })
-            );
-            const user: Awaitable<User> = {
-              id: loggedInUser.id,
-              first_name: loggedInUser.first_name ?? "",
-              last_name: loggedInUser.last_name ?? "",
-              email: loggedInUser.email ?? "",
-              access_token: cookieDirectValue,
-              expires: Math.floor(Date.now() + 3600 * 1000), // 1 hour expiry
-              refresh_token: "",
-            };
-            return user;
-          } catch (error: any) {
-            //console.error('Error in cookieData authorization:', error);
-            handleError(error);
-            return null;
-          }
-
+        if (cookieDirectValue !== null) {
+          return getUserData(cookieDirectValue);
         }
         if ("cookieData" in credentials) {
-          try {
-            const { cookieData } = credentials as { cookieData: string };
-            //console.log('cookieData in authorize:', cookieData);
-            const apiAuth = directus(cookieData);
-            const loggedInUser = await apiAuth.request(
-              readMe({
-                fields: ["id", "email", "first_name", "last_name"],
-              })
-            );
-            const user: Awaitable<User> = {
-              id: loggedInUser.id,
-              first_name: loggedInUser.first_name ?? "",
-              last_name: loggedInUser.last_name ?? "",
-              email: loggedInUser.email ?? "",
-              access_token: cookieData,
-              expires: Math.floor(Date.now() + 3600 * 1000), // 1 hour expiry
-              refresh_token: "",
-            };
-            return user;
-          } catch (error: any) {
-            //console.error('Error in cookieData authorization:', error);
-            handleError(error);
-            return null;
-          }
+          const { cookieData } = credentials as { cookieData: string };
+          return getUserData(cookieData);
         } else {
           return null;
         }
@@ -148,22 +116,25 @@ const authOptions: NextAuthConfig = {
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
     async jwt({ token, account, user, trigger, session }): Promise<JWT> {
-      if (trigger === "update" && !session?.tokenIsRefreshed) {
-        token.access_token = session.access_token;
-        token.refresh_token = session.refresh_token;
-        token.expires_at = session.expires_at;
-        token.tokenIsRefreshed = false;
+      if (trigger === "update" && session?.tokenIsRefreshed === false) {
+        if (session.access_token && session.refresh_token && session.expires_at) {
+          token.access_token = session.access_token;
+          token.refresh_token = session.refresh_token;
+          token.expires_at = session.expires_at;
+          token.tokenIsRefreshed = false;
+        }
       }
-
-      if (account) {
+  
+      if (account && user) {
         return {
           access_token: user.access_token,
           expires_at: user.expires,
           refresh_token: user.refresh_token,
           user: userParams(user),
+          role: user.role,
           error: null,
         };
-      } else if (Date.now() < (token.expires_at ?? 0)) {
+      } else if (token.expires_at && Date.now() < token.expires_at) {
         return { ...token, error: null };
       } else {
         try {
@@ -171,7 +142,7 @@ const authOptions: NextAuthConfig = {
           const result: AuthRefresh = await api.request(
             refresh("json", user?.refresh_token ?? token?.refresh_token ?? "")
           );
-          const resultToken = {
+          return {
             ...token,
             access_token: result.access_token ?? "",
             expires_at: Math.floor(Date.now() + (result.expires ?? 0)),
@@ -179,27 +150,25 @@ const authOptions: NextAuthConfig = {
             error: null,
             tokenIsRefreshed: true,
           };
-          return resultToken;
         } catch (error) {
-          return { ...token, error: "RefreshAccessTokenError" as const };
+          return { ...token, error: "RefreshAccessTokenError" };
         }
       }
-    },
+    },  
     async session({ session, token }): Promise<Session> {
       if (token.error) {
         session.error = token.error;
         session.expires = new Date(
           new Date().setDate(new Date().getDate() - 1)
         ).toISOString();
-      } else {
-        const { id, name, email } = token.user as UserParams;
-        session.user = { id, name, email };
+      } else if (token.user) {
+        const { id, name, email, role } = token.user as UserParams;
+        session.user = { id, name, email, role };
         session.access_token = token.access_token;
-        session.tokenIsRefreshed = token?.tokenIsRefreshed ?? false;
+        session.tokenIsRefreshed = token.tokenIsRefreshed ?? false;
         session.expires_at = token.expires_at;
         session.refresh_token = token.refresh_token;
       }
-
       return session;
     },
     /* async signIn(user, account, profile) {
@@ -207,6 +176,7 @@ const authOptions: NextAuthConfig = {
       if (cookieData) {
         return '/api/tokens/directusAuthGoogle';
       }
+      throw new Error("Invalid credentials");
       return false;
     }, */
   },

@@ -1,3 +1,4 @@
+//create a test page
 import Image from 'next/image';
 import env from '@/lib/env/globals';
 import LoginFormOuter from '@/app/login/form';
@@ -24,7 +25,6 @@ export default async function Home() {
           <h1>{siteName}</h1>
           <p>{siteDescription}</p>
         </div>
-        <LoginFormOuter />
       </div>
     </div>
   );

@@ -1,16 +1,19 @@
-// @/components/auth/loginDirectusLinks.server.tsx
-"use server";
-import React from 'react';
-import { directus } from '@/services/directus';
-import { readProviders } from '@directus/sdk';
+import {
+  createDirectus,
+  rest,
+  readProviders,
+} from "@directus/sdk";
 
-export async function getRedirectURI() {
-  const nextAuthURL = process.env.NEXTAUTH_URL;
-  const redirectURLFinished = `?redirect=${nextAuthURL}/api/tokens/directusauth`;
-  return redirectURLFinished;
-};
-
-export async function getDirectusProviders() {
-  const directusProviders = await directus.request(directus.readProviders());
-  return directusProviders;
-};
+export default async function getDirectusProviders() {
+  const directusApiUrl = process.env.NEXT_PUBLIC_DIRECTUS_API ?? "";
+  console.log('Directus API URL:', directusApiUrl);
+  
+  const directus = createDirectus(directusApiUrl).with(rest());
+  try {
+    const providers = await directus.request(readProviders());
+    return providers;
+  } catch (error) {
+    console.error('Error fetching providers from Directus:', error);
+    throw error;
+  }
+}

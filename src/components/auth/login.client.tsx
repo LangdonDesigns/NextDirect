@@ -22,9 +22,9 @@ export const useLogin = () => {
 
   const handleSubmitWithCookies = async () => {
     setLoadingButton('cookie');
-    const res = await signInWithCookie();
-    if (res?.error) {
-      setError(res.error);
+    const result = await signInWithCookie();
+    if (result?.error) {
+      setError(result.error);
     } else {
       router.push("/");
     }
@@ -33,9 +33,15 @@ export const useLogin = () => {
 
   const handleSubmitForm = async (values: { email: string; password: string }) => {
     setLoadingButton('submit');
-    const res = await signInWithEmailPassword(values);
-    if (res?.error) {
-      setError(res.error);
+    const signInOptions = {
+      email: values.email,
+      password: values.password,
+      callbackUrl: `/`,
+      redirect: false,
+    };
+    const result = await signIn("credentials", signInOptions);    
+    if (result?.error) {
+      setError(result.error);
     } else {
       router.push("/");
     }
@@ -58,15 +64,9 @@ const signInWithCookie = async () => {
     callbackUrl: `/`,
     redirect: false,
   };
-  return await signIn("credentials", signInOptions);
-};
-
-const signInWithEmailPassword = async (values: { email: string; password: string }) => {
-  const signInOptions = {
-    email: values.email,
-    password: values.password,
-    callbackUrl: `/`,
-    redirect: false,
-  };
-  return await signIn("credentials", signInOptions);
+  const result = await signIn("credentials", signInOptions);
+  if (result?.error) {
+    return { error: result.error };
+  }
+  return result;
 };

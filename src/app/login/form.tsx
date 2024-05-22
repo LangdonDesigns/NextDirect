@@ -10,11 +10,11 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Alert from 'react-bootstrap/Alert';
 import Spinner from 'react-bootstrap/Spinner';
+import LoadingSpinner from "@/components/blocks/spinners/loading";
 import Link from 'next/link';
 import DirectusLoginLinks from '@/components/auth/loginDirectusLinks.client';
 import { useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
-
+import { useEffect, useState } from 'react';
 
 const formSchema = z.object({
   email: z.string().email({
@@ -24,7 +24,8 @@ const formSchema = z.object({
 });
 
 export function LoginForm() {
-  const { handleSubmitForm, handleSubmitWithCookies, loadingButton, error } = useLogin();
+  const [error, setError] = useState<string>("");
+  const { handleSubmitForm, handleSubmitWithCookies, loadingButton, error: loginError } = useLogin();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -33,20 +34,30 @@ export function LoginForm() {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    await handleSubmitForm(values);
+  const onSubmit = async (values: z.infer<typeof formSchema>): Promise<void> => {
+    const res = await handleSubmitForm(values);
   };
 
   const searchParams = useSearchParams() as URLSearchParams;
   useEffect(() => {
     if (searchParams.get('directus') === 'true') {
-      
       handleSubmitWithCookies();
+    } else {
+      const errorParam = searchParams.get('error');
+      if (errorParam) {
+        setError(errorParam);
+      }
     }
-  }, [searchParams.get('directus')]); 
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (loginError) {
+      setError(loginError);
+    }
+  }, [loginError]);
 
   return (
-    <div className="d-flex justify-content-center align-items-center">
+    <div id="Login-Form-Shell" className="d-flex justify-content-center align-items-center">
       <div className="d-flex justify-content-center align-items-center p-5 m-5 rounded border border-secondary bg-secondary text-white">
         <div className="row">
           <div className="col-12 text-center">
@@ -72,14 +83,18 @@ export function LoginForm() {
                   </Alert>
                 )}
               </Form.Group>
-              <Button variant="primary" disabled={loadingButton === 'submit'} type="submit" className="float-end">{loadingButton === 'submit' ? <Spinner animation="border" size="sm" /> : "Login"}</Button>
+              <Button variant="primary" disabled={loadingButton === 'submit'} type="submit" className="float-end">
+                {loadingButton === 'submit' ? <Spinner animation="border" size="sm" /> : "Login"}
+              </Button>
             </Form>
           </div>
           <div className="col-12 d-none">
-            <Button id="Cookie-Login" variant="primary" disabled={loadingButton === 'cookie'} type="button" onClick={handleSubmitWithCookies} className="float-end mt-2">{loadingButton === 'cookie' ? <Spinner animation="border" size="sm" /> : "Login with Cookie"}</Button>
+            <Button id="Cookie-Login" variant="primary" disabled={loadingButton === 'cookie'} type="button" onClick={handleSubmitWithCookies} className="float-end mt-2">
+              {loadingButton === 'cookie' ? <Spinner animation="border" size="sm" /> : "Login with Cookie"}
+            </Button>
           </div>
           <DirectusLoginLinks />
-          <div className="col-12 text-center">
+          <div className="col-12 my-2 text-center">
             {error && (
               <Alert variant="danger">
                 {error}
@@ -94,13 +109,14 @@ export function LoginForm() {
   );
 }
 
-
 export default function LoginFormOuter() {
   const { data: session } = useSession();
   return session ? (
     <div className="col-12 d-flex flex-column justify-text-center">
       <h3>Welcome Back {session?.user?.name}!</h3>
       <p>Logged in as {session?.user?.email}</p>
+      <p>Session Id as {session?.user?.id}</p>
+      <p>Role: {session?.user?.role}</p>
     </div>
   ) : (
     <div className="col-12 d-flex flex-column">
