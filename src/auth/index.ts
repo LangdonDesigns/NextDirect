@@ -1,7 +1,6 @@
 // @/auth/index.ts
 import NextAuth, { User, NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import DirectusProvider from "@/auth/providers/directus";
 import { JWT } from "next-auth/jwt";
 import { handleError } from "@/lib/error/error";
 import { readMe, refresh } from "@directus/sdk";
@@ -48,15 +47,6 @@ const { DIRECTUS_CLIENT_ID, DIRECTUS_CLIENT_SECRET } = process.env;
 
 const authOptions: NextAuthConfig = {
   providers: [
-    DirectusProvider({
-      clientId: DIRECTUS_CLIENT_ID,
-      clientSecret: DIRECTUS_CLIENT_SECRET,
-      authorization: {
-        params: {
-          scope: "openid profile email",
-        },
-      },
-    }),
     Credentials({
       name: "credentials",
       credentials: {
@@ -69,11 +59,6 @@ const authOptions: NextAuthConfig = {
           label: "Password",
           type: "password",
           placeholder: "Enter your password",
-        },
-        cookieData: {
-          label: "Cookie Data",
-          type: "text",
-          placeholder: "Enter cookie data",
         },
       },
       authorize: async (credentials) => {
@@ -90,6 +75,7 @@ const authOptions: NextAuthConfig = {
               throw new Error("Email address or password is invalid");
             }
           } catch (error: any) {
+            handleError(error.Configuration);
             return null;
           }
         }
@@ -181,7 +167,7 @@ const authOptions: NextAuthConfig = {
     }, */
   },
   pages: {
-    signIn: "/login",
+    //signIn: "/login",
     error: "/login",
   },
 };

@@ -5,9 +5,7 @@ import {
 } from "@directus/sdk";
 
 export default async function getDirectusProviders() {
-  const directusApiUrl = process.env.NEXT_PUBLIC_DIRECTUS_API ?? "";
-  console.log('Directus API URL:', directusApiUrl);
-  
+  const directusApiUrl = process.env.NEXT_PUBLIC_DIRECTUS_API ?? "";  
   const directus = createDirectus(directusApiUrl).with(rest());
   try {
     const providers = await directus.request(readProviders());

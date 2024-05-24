@@ -1,20 +1,19 @@
 // @/app/login/form.tsx
 'use client';
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useLogin } from '@/components/auth/login.client';
 import { useForm } from 'react-hook-form';
 import { useSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Alert from 'react-bootstrap/Alert';
 import Spinner from 'react-bootstrap/Spinner';
-import LoadingSpinner from "@/components/blocks/spinners/loading";
 import Link from 'next/link';
 import DirectusLoginLinks from '@/components/auth/loginDirectusLinks.client';
-import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import ResetPasswordModal from '@/components/auth/resetPassword.client';
 
 const formSchema = z.object({
   email: z.string().email({
@@ -101,7 +100,7 @@ export function LoginForm() {
               </Alert>
             )}
             <p>New here? <Link className="text-white" href="/register">Create an account</Link></p>
-            <p><Link className="text-white" href="/reset">Forgot password?</Link></p>
+            <ResetPasswordModal />
           </div>
         </div>
       </div>
@@ -112,11 +111,15 @@ export function LoginForm() {
 export default function LoginFormOuter() {
   const { data: session } = useSession();
   return session ? (
-    <div className="col-12 d-flex flex-column justify-text-center">
-      <h3>Welcome Back {session?.user?.name}!</h3>
-      <p>Logged in as {session?.user?.email}</p>
-      <p>Session Id as {session?.user?.id}</p>
-      <p>Role: {session?.user?.role}</p>
+    <div className="container">
+      <div className="row">
+        <div className="col-12 my-4 d-flex flex-column justify-text-center">
+          <h3>Welcome Back {session?.user?.name}!</h3>
+          <p>Logged in as {session?.user?.email}</p>
+          <p>Session Id as {session?.user?.id}</p>
+          <p>Role: {session?.user?.role}</p>
+        </div>
+      </div>
     </div>
   ) : (
     <div className="col-12 d-flex flex-column">

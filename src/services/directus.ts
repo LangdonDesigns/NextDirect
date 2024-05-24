@@ -43,15 +43,20 @@ import {
     }
   }
 
-  export const StaticDirectus = createDirectus(process.env.NEXT_PUBLIC_DIRECTUS_API ?? "")
-    .with(authentication("session", {credentials: "include", autoRefresh: true}))
-    .with(rest());
-
-  export const getResult = async () => {
-    const result = await StaticDirectus.request<Output>({
-      
-    });
-    return result;
+  export const directusNoAuth = () => {
+    return createDirectus(process.env.NEXT_PUBLIC_DIRECTUS_API ?? "").with(rest({
+      mode: cors,
+      headers: {
+        'Access-Control-Allow-Origin': process.env.NEXT_PUBLIC_NEXTAUTH_URL ?? "",
+        'Content-Type': 'application/json',
+      }
+    }));
   };
+
+  export const directusBot = () => {
+    return createDirectus(process.env.NEXT_PUBLIC_DIRECTUS_API ?? "")
+    .with(staticToken(process.env.DIRECTUS_STATIC_ADMIN_TOKEN ?? ""))
+    .with(rest());
+  }
   
   export default { directus };
