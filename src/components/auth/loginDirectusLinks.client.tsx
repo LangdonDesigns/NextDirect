@@ -34,18 +34,20 @@ const DirectusLoginLinks = () => {
   const generateLoginButton = (providerName: string) => {
     const loginUrl = `${process.env.NEXT_PUBLIC_DIRECTUS_API}/auth/login/${providerName}?redirect=${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/api/tokens/directusauth&return=${currentUrl}`;
     return (
-      <div className="col-12" key={providerName}>
+      <>
         <Button
           id={`${providerName}-login`}
           variant="primary"
-          className="float-end mt-2"
+          className="mt-2"
+          key={providerName}
           type="link"
           href={loginUrl}
           onClick={handleClick}
+          className="col-12"
         >
           {loadingButton === `${providerName}-login` ? <Spinner animation="border" size="sm" /> : `Login with ${providerName.charAt(0).toUpperCase() + providerName.slice(1)}`}
         </Button>
-      </div>
+      </>
     );
   };
 

@@ -101,11 +101,10 @@ export default function RegistrationForm() {
       buttonType: 'onclick',
       action: () => router.push('/login'),
       class: 'col-12 text-center',
-    },      
+    },
   ];
 
   return (
-    <>
-<StandardForm formData={formData} onSubmit={onSubmit} error={error} success={success} />    </>
+    <StandardForm formData={formData} onSubmit={onSubmit} error={error} success={success} />    
   );
 }

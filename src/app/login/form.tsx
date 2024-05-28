@@ -1,39 +1,66 @@
 // @/app/login/form.tsx
 'use client';
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { useLogin } from '@/components/auth/login.client';
-import { useForm } from 'react-hook-form';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
-import Alert from 'react-bootstrap/Alert';
-import Spinner from 'react-bootstrap/Spinner';
-import Link from 'next/link';
 import DirectusLoginLinks from '@/components/auth/loginDirectusLinks.client';
 import ResetPasswordModal from '@/components/auth/resetPassword.client';
+import StandardForm from '@/components/forms/standard';
+import Link from 'next/link';
+import FormShell from '@/components/wrappers/form-shell-standard';
 
-const formSchema = z.object({
-  email: z.string().email({
-    message: "Email is required.",
-  }),
-  password: z.string().nonempty({ message: "Password is required" }),
-});
+const formData = [
+  {
+    id: 'titleTextBox',
+    type: 'textbox',
+    title: 'Login Here',
+    class: 'col-12 text-center'
+  },
+  {
+    id: 'email',
+    label: 'Email Address',
+    placeholder: 'name@example.com',
+    autoComplete: 'email',
+    type: 'email',
+    required: true,
+    feedback: 'Looks good!',
+    invalidFeedback: 'Please provide a valid email address.',
+  },
+  {
+    id: 'password',
+    label: 'Password',
+    placeholder: 'password',
+    autoComplete: 'password',
+    type: 'password',
+    required: true,
+    //pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+    feedback: 'Looks good!',
+    invalidFeedback: 'Please provide a valid password.',
+  },
+  {
+    id: 'submitButton',
+    label: 'Login',
+    type: 'button',
+    loading: 'submitButton',
+    buttonType: 'submit',
+    class: 'col-12 my-2 text-center'
+  },
+  {
+    id: 'newTextBox',
+    type: 'textbox',
+    title: 'Create an Account',
+    code: <p>New here? <Link href='register'>Create an account</Link></p>,
+    class: 'col-12 text-center'
+  }
+];
 
 export function LoginForm() {
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<string>('');
+  const [success, setSuccess] = useState<string>('');
   const { handleSubmitForm, handleSubmitWithCookies, loadingButton, error: loginError } = useLogin();
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>): Promise<void> => {
+  const onSubmit = async (values): Promise<void> => {
     const res = await handleSubmitForm(values);
   };
 
@@ -56,55 +83,12 @@ export function LoginForm() {
   }, [loginError]);
 
   return (
-    <div id="Login-Form-Shell" className="d-flex justify-content-center align-items-center">
-      <div className="d-flex justify-content-center align-items-center p-5 m-5 rounded border border-secondary bg-secondary text-white">
-        <div className="row">
-          <div className="col-12 text-center">
-            <h2>Login Here</h2>
-          </div>
-          <div className="col-12">
-            <Form onSubmit={form.handleSubmit(onSubmit)}>
-              <Form.Group className="mb-3" controlId="loginForm.email">
-                <Form.Label>Email Address</Form.Label>
-                <Form.Control type="email" placeholder="name@example.com" autoComplete="email" {...form.register("email")} />
-                {form.formState.errors.email && (
-                  <Alert variant="warning" style={{ padding: 2, margin: 0 }}>
-                    <p style={{ padding: 0, margin: 0 }}>{form.formState.errors.email.message}</p>
-                  </Alert>
-                )}
-              </Form.Group>
-              <Form.Group className="mb-3" controlId="loginForm.password">
-                <Form.Label>Password</Form.Label>
-                <Form.Control type="password" placeholder="password" autoComplete="password" {...form.register("password")} />
-                {form.formState.errors.password && (
-                  <Alert variant="warning" style={{ padding: 2, margin: 0 }}>
-                    <p style={{ padding: 0, margin: 0 }}>{form.formState.errors.password.message}</p>
-                  </Alert>
-                )}
-              </Form.Group>
-              <Button variant="primary" disabled={loadingButton === 'submit'} type="submit" className="float-end">
-                {loadingButton === 'submit' ? <Spinner animation="border" size="sm" /> : "Login"}
-              </Button>
-            </Form>
-          </div>
-          <div className="col-12 d-none">
-            <Button id="Cookie-Login" variant="primary" disabled={loadingButton === 'cookie'} type="button" onClick={handleSubmitWithCookies} className="float-end mt-2">
-              {loadingButton === 'cookie' ? <Spinner animation="border" size="sm" /> : "Login with Cookie"}
-            </Button>
-          </div>
-          <DirectusLoginLinks />
-          <div className="col-12 my-2 text-center">
-            {error && (
-              <Alert variant="danger">
-                {error}
-              </Alert>
-            )}
-            <p>New here? <Link className="text-white" href="/register">Create an account</Link></p>
-            <ResetPasswordModal />
-          </div>
-        </div>
-      </div>
-    </div>
+      <>
+          <StandardForm formData={formData} onSubmit={onSubmit} error={error} success={success} />
+          <DirectusLoginLinks />          
+          <ResetPasswordModal />
+      </>
+
   );
 }
 

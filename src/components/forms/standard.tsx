@@ -3,11 +3,11 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Button, Form, Alert, Spinner } from 'react-bootstrap';
 
-export default function StandardForm({ formData, onSubmit, error: errorProp, success: successProp }) {
+export default function StandardForm({ formData, onSubmit, error: errorProp, success: successProp }: any) {
   const router = useRouter();
-  const [loadingButton, setloadingButton] = useState<string | null>(null);
+  const [loadingButton, setLoadingButton] = useState<string | null>(null);
   const [validated, setValidated] = useState<boolean>(false);
-  const [initialWidth, setInitialWidth] = useState<string | null>(null);
+  const [initialWidth, setInitialWidth] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     const formInner = document.getElementById('Form-Inner');
@@ -16,7 +16,7 @@ export default function StandardForm({ formData, onSubmit, error: errorProp, suc
     }
   }, []);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
+  const handleSubmit2 = (event: React.FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
     const form = event.currentTarget;
     const formData = new FormData(form);
@@ -30,16 +30,45 @@ export default function StandardForm({ formData, onSubmit, error: errorProp, suc
       onSubmit(formTotalData);
     }
   };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formDataEntries = new FormData(form);
+    let formTotalData = Object.fromEntries(formDataEntries);
+    const button = (event.nativeEvent as any).submitter; 
+    const buttonId = button.id;
+
+    if (form.checkValidity() === false) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    setValidated(true);
+
+    if (form.checkValidity() === true) {
+      setLoadingButton(buttonId);
+
+      try {
+        const field = formData.find((field: any) => field.id === buttonId);
+
+        if (field) {
+          if (field.buttonType === 'submit') {
+            await onSubmit(formTotalData);
+          } else if (field.action) {
+            await field.action();
+          } else if (field.link) {
+            router.push(field.link);
+          }
+        }
+      } finally {
+        setLoadingButton(null);
+      }
+    }
+  };
   
   return (
-    <div id="Form-Shell" className="d-flex justify-content-center align-items-center">
-      <div
-        id="Form-Inner"
-        style={{ width: initialWidth }}
-        className="d-flex justify-content-center align-items-center p-5 m-5 rounded border border-secondary bg-secondary text-white"
-      >
         <div className="row">
-          <div className="col-12" style={{ minWidth: '25vw' }}>
+          <div className="col-12" style={{ minWidth: '100%', width: initialWidth }}>
             <Form noValidate validated={validated} onSubmit={handleSubmit}>
               {formData.map((field) => {
                 switch (field.type) {
@@ -105,9 +134,9 @@ export default function StandardForm({ formData, onSubmit, error: errorProp, suc
                         </fieldset>
                       </Form.Group>
                     );
-                  case 'button':
+                    case 'button':
                     return (
-                      <>
+                      <Form.Group key={field.id}>
                         {field.buttonType === 'submit' && successProp && (
                           <Alert variant="success">{successProp}</Alert>
                         )}
@@ -126,16 +155,17 @@ export default function StandardForm({ formData, onSubmit, error: errorProp, suc
                               ? 'reset'
                               : undefined
                           }
-                          onClick={field.buttonType === 'submit' ? undefined : field.action}
+                          onClick={field.buttonType === 'submit' || 'reset' ? undefined : handleSubmit}
+                          onClick={field.buttonType === 'onclick' ? field.action : undefined}
                           className={field.class ? field.class : 'col-12 my-2 text-center'}
                         >
                           {loadingButton === field.loading ? (
-                            <Spinner animation="border" size="sm" />
+                          <Spinner animation="border" size="sm" />
                           ) : (
-                            field.label
+                          field.label
                           )}
                         </Button>
-                      </>
+                      </Form.Group>
                     );
                   case 'range':
                     return (
@@ -177,7 +207,5 @@ export default function StandardForm({ formData, onSubmit, error: errorProp, suc
             </Form>
           </div>
         </div>
-      </div>
-    </div>
   );
 };

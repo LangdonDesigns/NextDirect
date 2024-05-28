@@ -1,6 +1,8 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import RegistrationForm from './form';
+import FormShell from '@/components/wrappers/form-shell-standard';
+import Container from '@/components/wrappers/container';
 
 export default async function RegisterPage() {
   const session = await auth();
@@ -8,8 +10,10 @@ export default async function RegisterPage() {
     redirect('/');
   }
   return (
-    <div>
-      <RegistrationForm />
-    </div>
+    <Container>
+      <FormShell>
+        <RegistrationForm />
+      </FormShell>
+    </Container>
   );
 }
