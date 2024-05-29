@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Button from 'react-bootstrap/Button';
-import Spinner from 'react-bootstrap/Spinner';
+import { Form, Button, Spinner } from 'react-bootstrap';
 import LoadingSpinner from '@/components/blocks/spinners/loading';
 import getDirectusProviders from '@/components/auth/loginDirectusLinks.server';
 
@@ -34,20 +33,18 @@ const DirectusLoginLinks = () => {
   const generateLoginButton = (providerName: string) => {
     const loginUrl = `${process.env.NEXT_PUBLIC_DIRECTUS_API}/auth/login/${providerName}?redirect=${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/api/tokens/directusauth&return=${currentUrl}`;
     return (
-      <>
+      <Form.Group key={providerName}>
         <Button
           id={`${providerName}-login`}
           variant="primary"
-          className="mt-2"
+          className="col-12 mt-2"
           key={providerName}
-          type="link"
           href={loginUrl}
           onClick={handleClick}
-          className="col-12"
         >
           {loadingButton === `${providerName}-login` ? <Spinner animation="border" size="sm" /> : `Login with ${providerName.charAt(0).toUpperCase() + providerName.slice(1)}`}
         </Button>
-      </>
+      </Form.Group>
     );
   };
 

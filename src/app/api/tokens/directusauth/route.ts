@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { authOptions } from '@/auth';
 import { getCookieData, createCookie } from '@/components/auth/login.server';
-import { getUrlReturn } from '@/components/auth/getUrl.client';
+import { GetUrlReturn } from '@/components/auth/getUrl.client';
 
 export async function GET(request: Request) {
   try {

@@ -1,23 +1,49 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { useState } from 'react';
 import { passwordReset } from '@directus/sdk';
-import { directus, rest } from '@/services/directus';
+import Directus from '@/services/directus';
 import { useRouter } from 'next/navigation';
-import Alert from 'react-bootstrap/Alert';
-import Form from 'react-bootstrap/Form';
-import Button from 'react-bootstrap/Button';
+import StandardForm from '@/components/forms/standard';
 
 export default function RequestResetForm({ token }: { token: string }) {
- const [newPassword, setNewPassword] = useState('');
  const [success, setSuccess] = useState('');
  const [error, setError] = useState('');
  const reset_token = token;
  const router = useRouter();
- const client = directus();
+ const client = Directus();
 
- const handleFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
-   e.preventDefault();
+ const formData = [
+    {
+      id: 'resetTitle',
+      title: 'Password Reset',
+      value: 'Enter your new password below. Note: Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters.',
+      type: 'textbox',
+      class: 'col-12 text-center',
+    },
+    {
+      id: 'password',
+      label: 'Password',
+      placeholder: 'password',
+      autoComplete: 'password',
+      type: 'password',
+      required: true,
+      pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+      feedback: 'Looks good!',
+      invalidFeedback: 'Please provide a valid password. Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters.',
+    },
+    {
+      id: 'submitButton',
+      label: 'Set New Password',
+      type: 'button',
+      loading: 'submitButton',
+      buttonType: 'submit',
+      class: 'col-12 my-2 text-center' 
+    },
+  ];
+
+const onSubmit = async (formTotalData: any) => {
+  const newPassword = formTotalData.password;
 
    try {
      const response = await client.request(
@@ -35,27 +61,6 @@ export default function RequestResetForm({ token }: { token: string }) {
    }
  };
  return (
-   <div id="Password-Reset-Form-Shell" className="d-flex justify-content-center align-items-center"> 
-      <div className="d-flex justify-content-center align-items-center p-5 m-5 rounded border border-secondary bg-secondary text-white">
-
-        <Form onSubmit={handleFormSubmit}>
-          <h2>Provide a new password for your account</h2>
-          <p>Enter your new password for your account</p>
-          <Form.Control
-            type="password"
-            placeholder="Enter your new password"
-            name="password"
-            required
-            onChange={(e) => setNewPassword(e.target.value)}
-            autoComplete="new-password"
-          />
-          {success && 
-          <Alert className='mt-2' variant='success'>{success}</Alert>}
-          {error && 
-          <Alert className='mt-2' variant='warning'>{error}</Alert>}
-          <Button className='mt-2' variant='primary'>Set New Password</Button>
-        </Form>
-      </div>
-   </div> 
+    <StandardForm formData={formData} onSubmit={onSubmit} error={error} success={success} />
  );
 }

@@ -4,21 +4,21 @@ import Credentials from "next-auth/providers/credentials";
 import { JWT } from "next-auth/jwt";
 import { handleError } from "@/lib/error/error";
 import { readMe, refresh } from "@directus/sdk";
-import { directus, login } from "@/services/directus";
+import Directus, { login } from "@/services/directus";
 import { AuthRefresh, UserSession, UserParams } from "@/types/next-auth";
 import { getCookieData } from "@/components/auth/login.server";
 import { cookies } from "next/headers";
 
 export const BASE_PATH = "/api/auth";
 
-async function getUserData(token: string): Promise<Awaitable<User> | null> {
+async function getUserData(token: string): Promise<User | null> {
   try {
       const expireFloor = Math.floor(Date.now() + 12 * 3600 * 1000);
-      const apiAuth = directus(token);
+      const apiAuth = Directus(token);
       const loggedInUser = await apiAuth.request(
         readMe({ fields: ["id", "email", "first_name", "last_name", "role.name"] })
       );
-      const user: Awaitable<User> = {
+      const user: User = {
         id: loggedInUser.id,
         first_name: loggedInUser.first_name ?? "",
         last_name: loggedInUser.last_name ?? "",
@@ -33,15 +33,6 @@ async function getUserData(token: string): Promise<Awaitable<User> | null> {
     return null;
   }
 }
-
-const userParams = ({ id, email, first_name, last_name, role }: UserSession): UserParams => ({
-  id,
-  email,
-  first_name,
-  last_name,
-  name: `${first_name} ${last_name}`,
-  role,
-});
 
 const { DIRECTUS_CLIENT_ID, DIRECTUS_CLIENT_SECRET } = process.env;
 
@@ -81,17 +72,18 @@ const authOptions: NextAuthConfig = {
         }
         await getCookieData();
         const cookieStore = cookies();
-        const cookieDirect = cookieStore.get(process.env.DIRECTUS_SESSION_TOKEN_NAME, { domain: process.env.DIRECTUS_SESSION_TOKEN_DOMAIN });
-        const cookieDirectValue = cookieDirect.value;
-        if (cookieDirectValue !== null) {
+        const cookieDirect = cookieStore.get(process.env.DIRECTUS_SESSION_TOKEN_NAME || "directus_session_token");
+        const cookieDirectValue = cookieDirect?.value; 
+        if (cookieDirectValue !== undefined) {
           return getUserData(cookieDirectValue);
         }
         if ("cookieData" in credentials) {
           const { cookieData } = credentials as { cookieData: string };
-          return getUserData(cookieData);
-        } else {
-          return null;
+          if (cookieData !== undefined) {
+            return getUserData(cookieData);
+          }
         }
+        return null;
       },
     }),
   ],
@@ -116,7 +108,7 @@ const authOptions: NextAuthConfig = {
           access_token: user.access_token,
           expires_at: user.expires,
           refresh_token: user.refresh_token,
-          user: userParams(user),
+          user: user,
           role: user.role,
           error: null,
         };
@@ -124,7 +116,7 @@ const authOptions: NextAuthConfig = {
         return { ...token, error: null };
       } else {
         try {
-          const api = directus();
+          const api = Directus();
           const result: AuthRefresh = await api.request(
             refresh("json", user?.refresh_token ?? token?.refresh_token ?? "")
           );
@@ -140,34 +132,40 @@ const authOptions: NextAuthConfig = {
           return { ...token, error: "RefreshAccessTokenError" };
         }
       }
-    },  
-    async session({ session, token }): Promise<Session> {
+    },
+    async session({ session, token }) {
       if (token.error) {
-        session.error = token.error;
-        session.expires = new Date(
-          new Date().setDate(new Date().getDate() - 1)
-        ).toISOString();
-      } else if (token.user) {
-        const { id, name, email, role } = token.user as UserParams;
-        session.user = { id, name, email, role };
-        session.access_token = token.access_token;
-        session.tokenIsRefreshed = token.tokenIsRefreshed ?? false;
-        session.expires_at = token.expires_at;
-        session.refresh_token = token.refresh_token;
+        throw new Error(token.error);
+      } else {
+        interface UserParams {
+          id: string;
+          first_name: string;
+          last_name: string;
+          email: string;
+          role: string;
+          access_token: string;
+          expires: number;
+          refresh_token: string;
+        }
+        const { id, first_name, last_name, email, role, access_token, expires, refresh_token } = token.user as UserParams;
+        session.user = { 
+          id: id ?? "", 
+          name: `${first_name ?? ""} ${last_name ?? ""}`,
+          email: email ?? "", 
+          role: role ?? "",
+          emailVerified: new Date(), 
+          first_name: first_name ?? "",
+          last_name: last_name ?? "",
+          access_token: "", //returned only for AdapterRouter
+          expires: 0,//returned only for AdapterRouter
+          refresh_token: "", //returned only for AdapterRouter
+        };
       }
       return session;
     },
-    /* async signIn(user, account, profile) {
-      const cookieData = await getCookieData();
-      if (cookieData) {
-        return '/api/tokens/directusAuthGoogle';
-      }
-      throw new Error("Invalid credentials");
-      return false;
-    }, */
   },
   pages: {
-    //signIn: "/login",
+    signIn: "/login",
     error: "/login",
   },
 };

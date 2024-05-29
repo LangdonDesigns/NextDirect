@@ -155,8 +155,13 @@ export default function StandardForm({ formData, onSubmit, error: errorProp, suc
                               ? 'reset'
                               : undefined
                           }
-                          onClick={field.buttonType === 'submit' || 'reset' ? undefined : handleSubmit}
-                          onClick={field.buttonType === 'onclick' ? field.action : undefined}
+                          onClick={
+                            field.buttonType === 'submit' || field.buttonType === 'reset'
+                              ? undefined
+                              : field.buttonType === 'onclick'
+                              ? field.action
+                              : handleSubmit
+                          }
                           className={field.class ? field.class : 'col-12 my-2 text-center'}
                         >
                           {loadingButton === field.loading ? (

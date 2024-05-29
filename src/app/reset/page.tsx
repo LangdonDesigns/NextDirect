@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation';
 import ResetPasswordForm from './form';
+import Container from '@/components/wrappers/container';
+import FormShell from '@/components/wrappers/form-shell-standard';
 
 export default async function ResetPasswordPage({
   searchParams,
@@ -9,8 +11,10 @@ export default async function ResetPasswordPage({
   const { token } = searchParams;
   if (!token) redirect('/login');
   return (
-    <div>
-      <ResetPasswordForm token={token} />
-    </div>
+    <Container>
+      <FormShell>
+        <ResetPasswordForm token={token} />
+      </FormShell>
+    </Container>
   );
 }

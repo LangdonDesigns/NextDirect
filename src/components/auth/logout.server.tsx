@@ -1,13 +1,14 @@
 //create an async server function as a default export that uses cookies from next/navigation deleting all local cookies and StackSession
-"use server";
-import { cookies } from "next/headers";
+'use server';
+import { cookies } from 'next/headers';
 
-export async function directusLogOut() {
+export async function DirectusLogOut() {
   const cookieStore = cookies();
   cookieStore.getAll().forEach((cookie) => {
     cookieStore.delete(cookie.name);
   });
-  cookieStore.delete({ name: process.env.DIRECTUS_SESSION_TOKEN_NAME });
-  const cookieDirect = cookieStore.get(process.env.DIRECTUS_SESSION_TOKEN_NAME, { domain: process.env.DIRECTUS_SESSION_TOKEN_DOMAIN });
+  cookieStore.delete({ name: process.env.DIRECTUS_SESSION_TOKEN_NAME || "directus_session_token", domain: process.env.DIRECTUS_SESSION_TOKEN_DOMAIN || "localhost" });
+  const cookieDirect = cookieStore.get(process.env.DIRECTUS_SESSION_TOKEN_NAME || "directus_session_token");
   //console.log('cookieDirect Exists', cookieDirect);
+  //TODO: Impliment another way to delete the cookie.  It still remains due to next/headers when on alternative domain. 
 }

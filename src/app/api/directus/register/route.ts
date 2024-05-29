@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createUser } from '@directus/sdk';
-import { directus } from "@/services/directus";
+import Directus from "@/services/directus";
 
 
 export async function POST(request: Request) {
   try {
     const { first_name, last_name, email, password } = await request.json();
-    const client = directus();
+    const client = Directus();
     const result = await client.request(
       createUser({
         first_name,

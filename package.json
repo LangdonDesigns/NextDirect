@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 7051",
+    "trace": "NODE_OPTIONS='--trace-deprecation' next dev -p 7051",
     "build": "next build",
     "start": "next start -p 7051",
     "lint": "next lint"
@@ -19,8 +20,7 @@
     "react": "^18",
     "react-bootstrap": "^2.10.2",
     "react-dom": "^18",
-    "react-hook-form": "^7.51.4",
-    "zod": "^3.23.8"
+    "react-hook-form": "^7.51.4"
   },
   "devDependencies": {
     "@types/node": "^20",

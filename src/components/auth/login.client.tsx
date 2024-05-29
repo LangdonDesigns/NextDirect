@@ -3,7 +3,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getCookieData } from '@/components/auth/login.server';
 
 export const useLogin = () => {
@@ -14,13 +14,7 @@ export const useLogin = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  useEffect(() => {
-    if (searchParams.get('triggerCookieLogin') === 'true') {
-      handleSubmitWithCookies();
-    }
-  }, [searchParams]);
-
-  const handleSubmitWithCookies = async () => {
+  const handleSubmitWithCookies = useCallback(async () => {
     setLoadingButton('cookie');
     const result = await signInWithCookie();
     if (result?.error) {
@@ -29,8 +23,14 @@ export const useLogin = () => {
       router.push("/");
     }
     setLoadingButton(null);
-  };
-
+  }, [router]); 
+  
+  useEffect(() => {
+    if (searchParams.get('triggerCookieLogin') === 'true') {
+      handleSubmitWithCookies();
+    }
+  }, [searchParams, handleSubmitWithCookies]);
+  
   const handleSubmitForm = async (values: { email: string; password: string }) => {
     setLoadingButton('submit');
     const signInOptions = {

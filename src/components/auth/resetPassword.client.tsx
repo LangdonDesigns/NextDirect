@@ -49,7 +49,7 @@ const ResetPasswordModal = () => {
       setTimeout(() => {setError("");setSuccess("");setShow(false);}, 3000);      
       return;
     }
-    catch (error) {
+    catch (error: any) {
       setError(error.message);
       return;
     }

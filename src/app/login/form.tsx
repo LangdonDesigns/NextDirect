@@ -8,7 +8,6 @@ import DirectusLoginLinks from '@/components/auth/loginDirectusLinks.client';
 import ResetPasswordModal from '@/components/auth/resetPassword.client';
 import StandardForm from '@/components/forms/standard';
 import Link from 'next/link';
-import FormShell from '@/components/wrappers/form-shell-standard';
 
 const formData = [
   {
@@ -58,10 +57,10 @@ const formData = [
 export function LoginForm() {
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
-  const { handleSubmitForm, handleSubmitWithCookies, loadingButton, error: loginError } = useLogin();
+  const { handleSubmitForm, handleSubmitWithCookies, error: loginError } = useLogin();
 
-  const onSubmit = async (values): Promise<void> => {
-    const res = await handleSubmitForm(values);
+  const onSubmit = async (formDataEntries: any): Promise<void> => {
+    const res = await handleSubmitForm(formDataEntries);
   };
 
   const searchParams = useSearchParams() as URLSearchParams;
@@ -74,7 +73,7 @@ export function LoginForm() {
         setError(errorParam);
       }
     }
-  }, [searchParams]);
+  }, [searchParams, handleSubmitWithCookies]);
 
   useEffect(() => {
     if (loginError) {
