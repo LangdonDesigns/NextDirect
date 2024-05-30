@@ -1,7 +1,8 @@
+// @/app/layout.tsx
 import type { Metadata } from "next";
 import { Archivo } from "next/font/google";
-import { SessionProvider } from 'next-auth/react'
-import SessionWrapper from "@/components/auth/sessionWrapper";
+import { auth } from '@/auth';
+import SessionWrapper from "@/components/auth/sessionWrapper.client";
 
 // Styles
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -16,13 +17,15 @@ export const metadata: Metadata = {
   description: process.env.NEXT_PUBLIC_SITE_DESCRIPTION ?? "Next.js App displaying Directus API Content",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+
   return (
-      <SessionWrapper>
+      <SessionWrapper session={session}>
         <html lang="en">
           <body className={archivo.className}>
             <Header />

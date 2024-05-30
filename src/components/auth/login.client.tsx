@@ -20,7 +20,7 @@ export const useLogin = () => {
     if (result?.error) {
       setError(result.error);
     } else {
-      router.push("/");
+      router.back();
     }
     setLoadingButton(null);
   }, [router]); 
@@ -43,7 +43,7 @@ export const useLogin = () => {
     if (result?.error) {
       setError(result.error);
     } else {
-      router.push("/");
+      router.back();
     }
     setLoadingButton(null);
   };

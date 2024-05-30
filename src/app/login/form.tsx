@@ -4,6 +4,7 @@ import { useLogin } from '@/components/auth/login.client';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import LoadingSpinner from '@/components/blocks/spinners/loading';
 import DirectusLoginLinks from '@/components/auth/loginDirectusLinks.client';
 import ResetPasswordModal from '@/components/auth/resetPassword.client';
 import StandardForm from '@/components/forms/standard';
@@ -55,6 +56,7 @@ const formData = [
 ];
 
 export function LoginForm() {
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const { handleSubmitForm, handleSubmitWithCookies, error: loginError } = useLogin();
@@ -65,8 +67,12 @@ export function LoginForm() {
 
   const searchParams = useSearchParams() as URLSearchParams;
   useEffect(() => {
+    setLoading(false);
     if (searchParams.get('directus') === 'true') {
-      handleSubmitWithCookies();
+      setLoading(true);
+      handleSubmitWithCookies().then(() => {
+        setLoading(false);
+      });
     } else {
       const errorParam = searchParams.get('error');
       if (errorParam) {
@@ -80,7 +86,9 @@ export function LoginForm() {
       setError(loginError);
     }
   }, [loginError]);
-
+  if (loading) {
+    return <><LoadingSpinner /></>;
+  }
   return (
       <>
           <StandardForm formData={formData} onSubmit={onSubmit} error={error} success={success} />
@@ -92,14 +100,28 @@ export function LoginForm() {
 }
 
 export default function LoginFormOuter() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (status === 'loading') {
+      setLoading(true);
+    } else {
+      setLoading(false);
+    }
+  }, [status]);
+
+  if (loading) {
+    return <><LoadingSpinner /></>;
+  }
+
   return session ? (
     <div className="container">
       <div className="row">
-        <div className="col-12 my-4 d-flex flex-column justify-text-center">
+        <div className="col-12 my-4 d-flex flex-column justify-content-center">
           <h3>Welcome Back {session?.user?.name}!</h3>
           <p>Logged in as {session?.user?.email}</p>
-          <p>Session Id as {session?.user?.id}</p>
+          <p>Session Id: {session?.user?.id}</p>
           <p>Role: {session?.user?.role}</p>
         </div>
       </div>

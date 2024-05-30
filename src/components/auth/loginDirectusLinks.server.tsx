@@ -1,3 +1,5 @@
+// @/components/auth/loginDirectusLinks.server.tsx
+'use server';
 import {
   createDirectus,
   rest,

@@ -37,16 +37,6 @@ export const login = async ({
   }
 }
 
-export const directusNoAuth = () => {
-  return createDirectus(process.env.NEXT_PUBLIC_DIRECTUS_API ?? "").with(rest({
-    mode: cors,
-    headers: {
-      'Access-Control-Allow-Origin': process.env.NEXT_PUBLIC_NEXTAUTH_URL ?? "",
-      'Content-Type': 'application/json',
-    }
-  }));
-};
-
 export const directusBot = () => {
   return createDirectus(process.env.NEXT_PUBLIC_DIRECTUS_API ?? "")
   .with(staticToken(process.env.DIRECTUS_STATIC_ADMIN_TOKEN ?? ""))

@@ -70,14 +70,14 @@ export default function StandardForm({ formData, onSubmit, error: errorProp, suc
         <div className="row">
           <div className="col-12" style={{ minWidth: '100%', width: initialWidth }}>
             <Form noValidate validated={validated} onSubmit={handleSubmit}>
-              {formData.map((field) => {
+              {formData.map((field: any) => {
                 switch (field.type) {
                   case 'select':
                     return (
                       <Form.Group controlId={field.id} key={field.id}>
                         <Form.Label>{field.label}</Form.Label>
                         <Form.Select className="form-select" aria-label={field.label}>
-                          {field.values.map((value, index) => (
+                          {field.values.map((value: any, index: any) => (
                             <option key={index + 1} value={index + 1}>
                               {value}
                             </option>
@@ -92,7 +92,7 @@ export default function StandardForm({ formData, onSubmit, error: errorProp, suc
                         <fieldset>
                           <legend>{field.label}</legend>
                           {Array.isArray(field.values) &&
-                            field.values.map((value, index) => (
+                            field.values.map((value: any, index: any) => (
                               <Form.Check
                                 type={field.type}
                                 id={`${field.id}-${index}`}
@@ -116,7 +116,7 @@ export default function StandardForm({ formData, onSubmit, error: errorProp, suc
                         <fieldset>
                           <legend>{field.label}</legend>
                           {Array.isArray(field.values) &&
-                            field.values.map((value, index) => (
+                            field.values.map((value: any, index: any) => (
                               <Form.Check
                                 type={field.type}
                                 id={`${field.id}-${index}`}
