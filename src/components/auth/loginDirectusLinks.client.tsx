@@ -33,7 +33,7 @@ const DirectusLoginLinks = () => {
   };
 
   const generateLoginButton = (providerName: string) => {
-    const loginUrl = `${process.env.NEXT_PUBLIC_DIRECTUS_API}/auth/login/${providerName}?redirect=${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/api/tokens/directusauth?return=${currentUrl}`;
+    const loginUrl = `${process.env.NEXT_PUBLIC_DIRECTUS_API}/auth/login/${providerName}?redirect=${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/api/directus/tokens?return=${currentUrl}`;
     return (
       <Form.Group key={providerName}>
         <Button
