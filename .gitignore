@@ -37,9 +37,16 @@ yarn-error.log*
 next-env.d.ts
 
 #Ignore Custom Pages and App Hooks
-/app/api/webhooks
-/app/pages
-/pages
+/temp
+/temp/**
+/queries
+/queries/**
+/src/app/api/proxy
+/src/app/api/proxy/**
+/src/app/api/webhooks
+/src/app/api/webhooks/**
+/src/app/pages
+/src/pages
 
 #Ignore Dev Tag Files
 dev-*

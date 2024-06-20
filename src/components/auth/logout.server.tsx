@@ -1,4 +1,4 @@
-//create an async server function as a default export that uses cookies from next/navigation deleting all local cookies and StackSession
+// @/components/auth/logout.server.tsx
 'use server';
 import { cookies } from 'next/headers';
 

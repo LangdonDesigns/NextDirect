@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { useState, useEffect, useCallback } from 'react';
 import { getCookieData } from '@/components/auth/login.server';
+import { useRemoveQueryParams } from '@/components/auth/removeQueryParams.client';
 
 export const useLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,6 +14,8 @@ export const useLogin = () => {
 
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { removeQueryParamsFromCurrentUrl } = useRemoveQueryParams();
+
 
   const handleSubmitWithCookies = useCallback(async () => {
     setLoadingButton('cookie');
@@ -20,7 +23,8 @@ export const useLogin = () => {
     if (result?.error) {
       setError(result.error);
     } else {
-      router.back();
+      removeQueryParamsFromCurrentUrl();
+      return;
     }
     setLoadingButton(null);
   }, [router]); 
@@ -43,7 +47,8 @@ export const useLogin = () => {
     if (result?.error) {
       setError(result.error);
     } else {
-      router.back();
+      removeQueryParamsFromCurrentUrl();
+      return;
     }
     setLoadingButton(null);
   };

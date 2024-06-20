@@ -12,6 +12,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "sourceMap": true,
     "plugins": [
       {
         "name": "next"
@@ -19,7 +20,9 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "auth/*": ["./src/auth/*"],
+      "@a/*": ["./src/auth/*"],
+      "@t/*": ["./src/temp/*"],
+      "@q/*": ["./src/queries/*"],
     }
   },
   "downlevelIteration": true,

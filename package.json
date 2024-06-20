@@ -14,20 +14,35 @@
     "@hookform/resolvers": "^3.4.0",
     "bootstrap": "^5.3.3",
     "dotenv": "^16.4.5",
-    "js-cookie": "^3.0.5",
-    "next": "14.2.3",
+    "fs": "^0.0.1-security",
+    "next": "^14.2.4",
     "next-auth": "^5.0.0-beta.18",
-    "react": "^18",
+    "path": "^0.12.7",
+    "pg": "^8.11.5",
+    "react": "^18.3.1",
     "react-bootstrap": "^2.10.2",
-    "react-dom": "^18",
-    "react-hook-form": "^7.51.4"
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.51.4",
+    "sitemap": "^8.0.0",
+    "ssh2": "^1.15.0",
+    "ts-loader": "^9.5.1",
+    "webpack-node-externals": "^3.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/pg": "^8.11.6",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/ssh2": "^1.15.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.3",
+    "node-loader": "^2.0.0",
     "typescript": "^5"
+  },
+  "_moduleAliases": {
+    "@": "src",
+    "@a": "src/auth",
+    "@t": "src/temp",
+    "@q": "src/queries"
   }
 }
