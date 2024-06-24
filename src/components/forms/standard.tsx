@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Button, Form, Alert, Spinner } from 'react-bootstrap';
+// import ReCaptcha from '@/components/recaptcha/googleRecapatcha';
 
 export default function StandardForm({ formData, onSubmit, error: errorProp, success: successProp }: any) {
   const router = useRouter();
@@ -208,7 +209,9 @@ export default function StandardForm({ formData, onSubmit, error: errorProp, suc
                       </Form.Group>
                     );
                 }
-              })}
+                })}
+
+                {/* <ReCaptcha onVerify={handleVerify} /> */}
             </Form>
           </div>
         </div>

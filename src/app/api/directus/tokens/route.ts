@@ -6,11 +6,15 @@ export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
     const returnUrl = url.searchParams.get('return');
-
     const cookieData = await getCookieData();
     if (cookieData) {
-      const redirectUrl = `${returnUrl}?directus=true`;
-      return NextResponse.redirect(redirectUrl, { status: 302 });
+      if (returnUrl?.includes('?')) {
+        const redirectUrl = `${returnUrl}&directus=true`;
+        return NextResponse.redirect(redirectUrl, { status: 302 });
+      } else {
+        const redirectUrl = `${returnUrl}?directus=true`;
+        return NextResponse.redirect(redirectUrl, { status: 302 });
+      }
     } else {
       const error = 'Invalid Provider Contact Webmaster';
       const redirectUrl = `${process.env.NEXTAUTH_URL}/login?error=${error}`;
