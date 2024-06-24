@@ -33,7 +33,7 @@ export default function Header() {
                   />
                   <Button variant="secondary">Search</Button>
               </Form>
-              <div className="d-flex m-2">
+              <div className="d-flex">
                 <ButtonUser />
               </div>
           </Navbar.Collapse>

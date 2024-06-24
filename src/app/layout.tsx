@@ -8,6 +8,11 @@ import SessionWrapper from "@/components/auth/sessionWrapper.client";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "./globals.css";
 
+// FontAwesome Config
+import '@fortawesome/fontawesome-svg-core/styles.css'; 
+import { config } from '@fortawesome/fontawesome-svg-core';
+config.autoAddCss = false;
+
 import Header from "@/components/blocks/header";
 
 const archivo = Archivo({ subsets: ["latin"] });
