@@ -17,21 +17,6 @@ export default function StandardForm({ formData, onSubmit, error: errorProp, suc
     }
   }, []);
 
-  const handleSubmit2 = (event: React.FormEvent<HTMLFormElement>): void => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const formData = new FormData(form);
-    let formTotalData = Object.fromEntries(formData);
-    if (form.checkValidity() === false) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-    setValidated(true);
-    if (form.checkValidity() === true) {
-      onSubmit(formTotalData);
-    }
-  };
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -54,6 +39,7 @@ export default function StandardForm({ formData, onSubmit, error: errorProp, suc
 
         if (field) {
           if (field.buttonType === 'submit') {
+            console.log('Form Data:', formTotalData);
             await onSubmit(formTotalData);
           } else if (field.action) {
             await field.action();
@@ -77,9 +63,9 @@ export default function StandardForm({ formData, onSubmit, error: errorProp, suc
                     return (
                       <Form.Group controlId={field.id} key={field.id}>
                         <Form.Label>{field.label}</Form.Label>
-                        <Form.Select className="form-select" aria-label={field.label}>
-                          {field.values.map((value: any, index: any) => (
-                            <option key={index + 1} value={index + 1}>
+                        <Form.Select name={field.id} className="form-select" aria-label={field.label}>
+                          {field.values.map((value: string) => (
+                            <option key={value} value={value}>
                               {value}
                             </option>
                           ))}
